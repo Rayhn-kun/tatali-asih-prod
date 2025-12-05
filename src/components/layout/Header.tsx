@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Settings, Package } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Settings, Package, Cube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useStore } from '@/store/useStore'
@@ -34,6 +34,12 @@ export const Header: React.FC = () => {
           >
             Katalog
           </Link>
+          <a
+            href={`${import.meta.env.BASE_URL}hero/`}
+            className="text-sm font-medium transition-colors hover:text-primary"
+          >
+            3D
+          </a>
           {isAuthenticated && (
             <Link 
               to="/orders" 
@@ -62,8 +68,8 @@ export const Header: React.FC = () => {
                 <ShoppingCart className="h-5 w-5" />
                 {getTotalItems() > 0 && (
                   <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center"
                   >
                     {getTotalItems()}
                   </Badge>
@@ -72,35 +78,31 @@ export const Header: React.FC = () => {
             </Link>
           )}
 
-          {/* User menu */}
+          {/* Auth */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-2">
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.role === 'ADMIN' ? 'Administrator' : 'Anggota'}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" /> Keluar
+            </Button>
           ) : (
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" asChild>
-                <Link to="/login">Masuk</Link>
+            <Link to="/login">
+              <Button variant="default" size="sm">
+                <User className="h-4 w-4 mr-2" /> Masuk
               </Button>
-              <Button asChild>
-                <Link to="/register">Daftar</Link>
-              </Button>
-            </div>
+            </Link>
           )}
         </div>
       </div>
 
-      {/* Mobile navigation */}
-      <div className="md:hidden border-t px-4 py-2">
-        <nav className="flex items-center justify-around">
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="grid grid-cols-4 gap-1 px-4 py-2">
+          <Link 
+            to="/" 
+            className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
+          >
+            <Package className="h-4 w-4" />
+            <span>Beranda</span>
+          </Link>
           <Link 
             to="/catalog" 
             className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
@@ -108,16 +110,14 @@ export const Header: React.FC = () => {
             <Package className="h-4 w-4" />
             <span>Katalog</span>
           </Link>
-          {isAuthenticated && (
-            <Link 
-              to="/orders" 
-              className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
-            >
-              <Package className="h-4 w-4" />
-              <span>Pesanan</span>
-            </Link>
-          )}
-          {user?.role === 'ADMIN' && (
+          <a 
+            href={`${import.meta.env.BASE_URL}hero/`} 
+            className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
+          >
+            <Cube className="h-4 w-4" />
+            <span>3D</span>
+          </a>
+          {user?.role === 'ADMIN' ? (
             <Link 
               to="/admin" 
               className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
@@ -125,9 +125,27 @@ export const Header: React.FC = () => {
               <Settings className="h-4 w-4" />
               <span>Admin</span>
             </Link>
+          ) : (
+            isAuthenticated ? (
+              <Link 
+                to="/orders" 
+                className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
+              >
+                <Package className="h-4 w-4" />
+                <span>Pesanan</span>
+              </Link>
+            ) : (
+              <Link 
+                to="/login" 
+                className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
+              >
+                <User className="h-4 w-4" />
+                <span>Masuk</span>
+              </Link>
+            )
           )}
-        </nav>
-      </div>
+        </div>
+      </nav>
     </header>
   )
 }
