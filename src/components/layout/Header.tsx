@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Settings, Package, Cube } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Settings, Package, Box } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useStore } from '@/store/useStore'
@@ -114,7 +114,7 @@ export const Header: React.FC = () => {
             href={`${import.meta.env.BASE_URL}hero/`} 
             className="flex flex-col items-center space-y-1 text-xs font-medium transition-colors hover:text-primary"
           >
-            <Cube className="h-4 w-4" />
+            <Box className="h-4 w-4" />
             <span>3D</span>
           </a>
           {user?.role === 'ADMIN' ? (
