@@ -1,0 +1,34 @@
+{
+  "name": "tatali-asih-api",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "seed": "ts-node backend/seed/seed.ts || true",
+    "seed:local": "ts-node ../../backend/seed/seed.ts || true",
+    "seed-admin": "ts-node ../../backend/seed/admin.ts || true",
+    "seed-admin:docker": "ts-node backend/seed/admin.ts || true",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "@prisma/client": "^4.15.0",
+    "cors": "^2.8.5",
+    "zod": "^3.21.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "swagger-ui-express": "^4.6.2"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6",
+    "ts-node": "^10.9.1",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.12",
+    "ts-jest": "^29.0.0"
+  }
+}

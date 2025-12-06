@@ -1,0 +1,15 @@
+{
+  "name": "tatali-asih-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev": "pnpm -w -r -s run dev",
+    "build": "pnpm -w -r build",
+    "lint": "pnpm -w -r lint",
+    "test": "pnpm -w -r test"
+  }
+}
