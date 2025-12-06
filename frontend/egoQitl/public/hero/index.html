@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>3D Hero  Selfhosted</title>
+<style>
+  :root { --bg:#0b0b0f; --panel: rgba(255,255,255,0.06); --accent:#ffd166; }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#05050a 0%,var(--bg) 100%);font-family:system-ui;}
+  .hero{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  canvas{width:100%;height:100%;display:block;}
+  .ui{position:absolute;right:24px;top:24px;display:flex;flex-direction:column;gap:10px;z-index:10}
+  .btn{background:var(--panel);color:#fff;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);backdrop-filter:blur(6px);cursor:pointer}
+  .btn.active{outline:2px solid rgba(255,209,102,0.18)}
+  .small{font-size:13px;padding:6px 8px}
+  @media (max-width:720px){ .ui{right:12px;top:12px} .btn{padding:8px} }
+  .title{position:absolute;left:24px;bottom:36px;color:#fff;z-index:9;filter:drop-shadow(0 4px 14px rgba(0,0,0,0.6))}
+  .title h1{margin:0;font-weight:600;font-size:clamp(18px,3.6vw,36px)}
+  .title p{margin:4px 0 0;color:#c9c9d6;font-size:12px;opacity:.9}
+</style>
+</head>
+<body>
+<div class="hero">
+  <canvas id="c"></canvas>
+
+  <div class="ui" id="ui">
+    <button id="btn-auto" class="btn small">Toggle Auto-Rotate</button>
+    <button id="btn-play" class="btn small">Play Anim</button>
+    <button id="btn-pause" class="btn small">Pause Anim</button>
+    <button id="btn-reset" class="btn small">Reset View</button>
+  </div>
+
+  <div class="title">
+    <h1>Brand / Logo</h1>
+    <p>Interactive 3D hero — click object to interact</p>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from './libs/three.module.js';
+import { GLTFLoader } from './libs/GLTFLoader.js';
+import { OrbitControls } from './libs/OrbitControls.js';
+import { EffectComposer } from './libs/EffectComposer.js';
+import { RenderPass } from './libs/RenderPass.js';
+import { UnrealBloomPass } from './libs/UnrealBloomPass.js';
+import { ShaderPass } from './libs/ShaderPass.js';
+import { FXAAShader } from './libs/FXAAShader.js';
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07070b);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 200);
+camera.position.set(0, 1.6, 3.2);
+
+const hemi = new THREE.HemisphereLight(0xddeeff, 0x0a0a14, 0.6);
+scene.add(hemi);
+
+const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+dir.position.set(5, 10, 7);
+dir.castShadow = true;
+dir.shadow.camera.near = 0.5;
+dir.shadow.camera.far = 50;
+dir.shadow.mapSize.set(2048, 2048);
+scene.add(dir);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20,20),
+  new THREE.MeshStandardMaterial({color:0x04040a, metalness:0.0, roughness:1})
+);
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.01;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.minDistance = 1.2;
+controls.maxDistance = 8;
+controls.target.set(0, 0.8, 0);
+controls.update();
+let autoRotateEnabled = false;
+controls.autoRotate = false;
+controls.autoRotateSpeed = 0.6;
+
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.4, 0.85);
+bloomPass.threshold = 0.2;
+bloomPass.strength = 0.9;
+bloomPass.radius = 0.5;
+composer.addPass(bloomPass);
+
+const fxaa = new ShaderPass(FXAAShader);
+fxaa.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+composer.addPass(fxaa);
+
+const loader = new GLTFLoader();
+const clock = new THREE.Clock();
+let mixer = null;
+let root = null;
+
+loader.load('../assets/model.glb', (gltf) => {
+  root = gltf.scene;
+  root.traverse((obj) => {
+    if (obj.isMesh) {
+      obj.castShadow = true;
+      obj.receiveShadow = true;
+      if (obj.material && 'envMapIntensity' in obj.material) obj.material.envMapIntensity = 0.8;
+    }
+  });
+  root.position.set(0, 0.8, 0);
+  scene.add(root);
+
+  if (gltf.animations && gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(root);
+    gltf.animations.forEach((clip) => mixer.clipAction(clip).play());
+  }
+});
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let lastInteraction = performance.now();
+
+function onPointerMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+  lastInteraction = performance.now();
+}
+function onClick() {
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(scene.children, true);
+  if (hits.length > 0) {
+    const mesh = hits[0].object;
+    const mat = mesh.material;
+    if (mat && 'emissive' in mat) {
+      mat.emissive = new THREE.Color(0xF59E0B);
+      mat.emissiveIntensity = 0.6;
+      setTimeout(() => {
+        mat.emissive = new THREE.Color(0x000000);
+        mat.emissiveIntensity = 0;
+      }, 600);
+    }
+  }
+  lastInteraction = performance.now();
+}
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+renderer.domElement.addEventListener('pointerdown', onClick);
+renderer.domElement.addEventListener('wheel', () => { lastInteraction = performance.now(); }, { passive: true });
+
+// UI buttons
+document.getElementById('btn-auto').addEventListener('click', () => { autoRotateEnabled = !autoRotateEnabled; });
+document.getElementById('btn-play').addEventListener('click', () => { if (mixer) mixer.timeScale = 1; });
+document.getElementById('btn-pause').addEventListener('click', () => { if (mixer) mixer.timeScale = 0; });
+document.getElementById('btn-reset').addEventListener('click', () => { controls.reset(); camera.position.set(0, 1.6, 3.2); lastInteraction = performance.now(); });
+
+function animate() {
+  const dt = clock.getDelta();
+  const idleFor = performance.now() - lastInteraction;
+  const shouldAutoRotate = autoRotateEnabled || idleFor > 6000;
+  controls.autoRotate = shouldAutoRotate;
+
+  controls.update();
+
+  if (root) {
+    const t = clock.elapsedTime;
+    root.position.y = 0.8 + Math.sin(t * 1.2) * 0.03;
+    root.rotation.y += shouldAutoRotate ? 0.002 : 0;
+  }
+
+  if (mixer) mixer.update(dt);
+
+  composer.render();
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  fxaa.material.uniforms['resolution'].value.set(1/w, 1/h);
+  composer.setSize(w, h);
+});
+</script>
+</body>
+</html>
