@@ -60,6 +60,8 @@ docker compose up -d --build
 5. Deploy! Salin URL backend (contoh: `https://tatali-api.onrender.com`).
 
 ### 3. Frontend (GitHub Pages)
+> **⚠️ PENTING**: Konfigurasi default mengasumsikan nama repository GitHub Anda adalah `tatali-asih-prod`. Jika Anda menggunakan nama lain, silakan ubah nilai `base` di file `frontend/egoQitl/vite.config.ts` sebelum push.
+
 1. Di repo GitHub, masuk ke **Settings** -> **Secrets and variables** -> **Actions**.
 2. Buat **New Repository Variable**:
    - Name: `VITE_API_BASE_URL`
@@ -70,3 +72,4 @@ docker compose up -d --build
 
 ---
 ✨ Dibangun otomatis berdasarkan percakapan pengembanganmu.
+

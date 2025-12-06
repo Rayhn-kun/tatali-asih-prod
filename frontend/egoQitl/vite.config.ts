@@ -4,7 +4,7 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/',
+  base: '/tatali-asih-prod/', // Assumes GitHub repository name is 'tatali-asih-prod'
   plugins: [react()],
   resolve: {
     alias: {

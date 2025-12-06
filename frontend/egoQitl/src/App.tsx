@@ -50,66 +50,66 @@ function App() {
   }, [token])
 
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route 
             path="login" 
-            element={
-              isAuthenticated ? <Navigate to="/catalog" replace /> : <Login />
-            } 
-          />
-          <Route 
-            path="register" 
-            element={
-              isAuthenticated ? <Navigate to="/catalog" replace /> : <Register />
-            } 
-          />
-          
-          {/* Protected routes - require authentication */}
-          <Route 
-            path="catalog" 
-            element={
-              <ProtectedRoute requireAuth>
-                <Catalog />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="cart" 
-            element={
-              <ProtectedRoute requireAuth>
-                <Cart />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="orders" 
-            element={
-              <ProtectedRoute requireAuth>
-                <Orders />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin routes - require admin role */}
-          <Route 
-            path="admin/*" 
-            element={
-              <ProtectedRoute requireAuth requireAdmin>
-                <Admin />
-              </ProtectedRoute>
-            } 
-          />
-        </Route>
-
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
-  )
+              element={
+                isAuthenticated ? <Navigate to="/catalog" replace /> : <Login />
+              } 
+            />
+            <Route 
+              path="register" 
+              element={
+                isAuthenticated ? <Navigate to="/catalog" replace /> : <Register />
+              } 
+            />
+            
+            {/* Protected routes - require authentication */}
+            <Route 
+              path="catalog" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <Catalog />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="cart" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <Cart />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="orders" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <Orders />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin routes - require admin role */}
+            <Route 
+              path="admin/*" 
+              element={
+                <ProtectedRoute requireAuth requireAdmin>
+                  <Admin />
+                </ProtectedRoute>
+              } 
+            />
+          </Route>
+  
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    )
 }
 
 export default App
