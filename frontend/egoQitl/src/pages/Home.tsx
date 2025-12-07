@@ -4,6 +4,7 @@ import { ShoppingCart, Users, TrendingUp, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { WaveBackground } from '@/components/three/WaveBackground'
+import { Hero3D } from '@/pages/Hero3D'
 import { useStore } from '@/store/useStore'
 
 export const Home: React.FC = () => {
@@ -35,47 +36,55 @@ export const Home: React.FC = () => {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        <WaveBackground className="opacity-50" />
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-white to-gray-50">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <WaveBackground className="opacity-30" />
+        </div>
         
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Koperasi Sekolah
-              <span className="block text-primary">Tatali Asih</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Platform digital untuk pemesanan produk kesehatan koperasi sekolah. 
-              Mudah, aman, dan terpercaya untuk seluruh anggota.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
-                <>
-                  <Button size="lg" asChild>
-                    <Link to="/catalog">
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Lihat Katalog
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link to="/orders">Pesanan Saya</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button size="lg" asChild>
-                    <Link to="/register">
-                      <Users className="mr-2 h-5 w-5" />
-                      Daftar Sekarang
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link to="/login">Masuk</Link>
-                  </Button>
-                </>
-              )}
+        <div className="relative z-10 container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Koperasi Sekolah
+                <span className="block text-primary">Tatali Asih</span>
+              </h1>
+              
+              <p className="text-xl text-gray-600 mb-8 max-w-lg mx-auto md:mx-0">
+                Platform digital untuk pemesanan produk kesehatan koperasi sekolah. 
+                Mudah, aman, dan terpercaya untuk seluruh anggota.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                {isAuthenticated ? (
+                  <>
+                    <Button size="lg" asChild>
+                      <Link to="/catalog">
+                        <ShoppingCart className="mr-2 h-5 w-5" />
+                        Lihat Katalog
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                      <Link to="/orders">Pesanan Saya</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg" asChild>
+                      <Link to="/register">
+                        <Users className="mr-2 h-5 w-5" />
+                        Daftar Sekarang
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                      <Link to="/login">Masuk</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="h-[400px] w-full relative">
+               <Hero3D />
             </div>
           </div>
         </div>

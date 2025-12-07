@@ -1,4 +1,6 @@
 import swaggerUi from 'swagger-ui-express';
+
+
 import openapi from './openapi.json' assert { type: 'json' };
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -33,8 +35,8 @@ app.use('/api/users', usersRouter(prisma));
 app.use('/api/auth', authRouter(prisma));
 app.use('/api/reports', reportsRouter(prisma));
 
-const port = process.env.PORT || 8000;
+const port = (process as any).env.PORT || 8000;
 app.listen(port, () => {
   console.log(`API running on http://0.0.0.0:${port}`);
 });
-
+
