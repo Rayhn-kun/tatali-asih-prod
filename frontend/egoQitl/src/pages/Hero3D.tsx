@@ -31,9 +31,13 @@ export const Hero3D: React.FC = () => {
     let model: THREE.Group | null = null
     let animationId: number
 
+    const modelPath = `${import.meta.env.BASE_URL}assets/model.glb`
+    console.log('Loading 3D model from:', modelPath)
+
     loader.load(
-      `${import.meta.env.BASE_URL}assets/model.glb`, // Respect base path
+      modelPath, 
       (gltf) => {
+        console.log('Model loaded successfully')
         model = gltf.scene
         
         // Center and scale model
@@ -60,10 +64,12 @@ export const Hero3D: React.FC = () => {
         }
         animate()
       },
-      undefined,
+      (progress) => {
+        console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%')
+      },
       (err) => {
-        console.error('Error loading 3D model:', err)
-        setError('Gagal memuat model 3D')
+        console.error('Error loading 3D model from:', modelPath, err)
+        setError(`Gagal memuat model 3D: ${err.message}`)
       }
     )
 
@@ -94,3 +100,4 @@ export const Hero3D: React.FC = () => {
 }
 
 export default Hero3D
+

@@ -1,73 +1,49 @@
-# Panduan Deployment Langkah demi Langkah
+# Panduan Deployment Otomatis (Free Forever)
 
-Berikut adalah langkah-langkah lengkap untuk men-deploy aplikasi Tatali Asih ke produksi menggunakan Render (Backend) dan GitHub Pages (Frontend).
+Aplikasi Anda telah berhasil di-push ke GitHub! 🎉
+Sekarang, ikuti langkah-langkah mudah ini untuk membuat website Anda LIVE dan dapat diakses oleh semua orang secara GRATIS selamanya.
 
-## 1. Persiapan GitHub Repository
+## 1. Setup Database (Sekali Saja)
 
-Karena Anda belum menghubungkan folder ini ke GitHub, lakukan langkah ini terlebih dahulu:
+Kita perlu tempat untuk menyimpan data user dan pesanan.
+1.  Buka [Supabase](https://supabase.com/) atau [Neon](https://neon.tech/).
+2.  Daftar akun gratis (Free Tier).
+3.  Buat Project baru.
+4.  Cari **Connection String** database Anda.
+    *   Format: `postgres://user:password@host:port/database`
+    *   Simpan ini, kita butuh di langkah berikutnya.
 
-1.  Buka [GitHub](https://github.com) dan buat repository baru (misalnya: `tatali-asih-prod`).
-2.  Jangan centang "Add a README file" (biarkan kosong).
-3.  Jalankan perintah berikut di terminal VS Code (terminal ini):
+## 2. Aktifkan Backend (Render.com)
 
-```bash
-# Ganti URL_REPO_ANDA dengan URL repository baru Anda
-# Contoh: https://github.com/username/tatali-asih-prod.git
-git remote add origin URL_REPO_ANDA
-git branch -M master
-git push -u origin master
-```
+Backend adalah "otak" aplikasi Anda. Kita akan hosting di Render karena gratis dan mendukung Docker.
 
-## 2. Setup Database (Supabase / Neon)
-
-Anda memerlukan database PostgreSQL yang dapat diakses dari internet.
-
-1.  Daftar di [Supabase](https://supabase.com/) atau [Neon](https://neon.tech/).
-2.  Buat project baru.
-3.  Salin **Connection String** (URI).
-    *   Supabase: Settings -> Database -> Connection string -> URI (Mode: Session/Transaction).
-    *   Contoh format: `postgres://postgres.xxxx:password@aws-0-region.pooler.supabase.com:6543/postgres`
-
-## 3. Deploy Backend ke Render.com
-
-1.  Daftar/Login ke [Render Dashboard](https://dashboard.render.com/).
+1.  Buka [Render Dashboard](https://dashboard.render.com/).
 2.  Klik **New +** -> **Web Service**.
 3.  Pilih **Build and deploy from a Git repository**.
-4.  Connect akun GitHub Anda dan pilih repository `tatali-asih-prod` yang baru dibuat.
-5.  Render akan mendeteksi `render.yaml` di dalam repository.
-    *   Jika diminta konfirmasi, klik **Apply**.
-    *   Jika tidak, pilih Runtime: **Docker**.
-6.  Konfigurasi **Environment Variables**:
-    *   `DATABASE_URL`: Paste connection string dari langkah 2.
-    *   `JWT_SECRET`: Isi dengan string acak (contoh: `rahasia_super_aman_123`).
-    *   `PORT`: `8000` (biasanya sudah otomatis dari render.yaml).
-7.  Klik **Create Web Service**.
-8.  Tunggu proses build selesai. Setelah sukses, salin URL backend Anda (misal: `https://tatali-asih-api.onrender.com`).
+4.  Pilih repo `tatali-asih-prod` yang baru saja kita push.
+5.  Render akan otomatis mendeteksi `render.yaml` kita. Klik **Apply** atau **Create Web Service**.
+6.  **PENTING**: Masukkan Environment Variables:
+    *   `DATABASE_URL`: Masukkan link database dari Langkah 1.
+    *   `JWT_SECRET`: Ketik sembarang kata sandi acak yang panjang (contoh: `kuncirahasia12345`).
+7.  Tunggu sampai statusnya **Live**.
+8.  Salin URL Backend Anda (misal: `https://tatali-asih-api.onrender.com`).
 
-## 4. Konfigurasi Frontend untuk GitHub Pages
+## 3. Aktifkan Frontend (GitHub Pages)
 
-1.  Kembali ke halaman repository GitHub Anda.
+Frontend adalah "wajah" aplikasi yang dilihat pengunjung.
+
+1.  Buka repository GitHub Anda: [https://github.com/Rayhn-kun/tatali-asih-prod](https://github.com/Rayhn-kun/tatali-asih-prod)
 2.  Masuk ke **Settings** -> **Secrets and variables** -> **Actions**.
 3.  Klik **New repository variable**:
-    *   **Name**: `VITE_API_BASE_URL`
-    *   **Value**: URL Backend dari Render (tanpa slash di akhir, misal: `https://tatali-asih-api.onrender.com/api`).
-    *   *Catatan: Pastikan tambahkan `/api` jika backend Anda melayani rute di bawah `/api`.*
+    *   Name: `VITE_API_BASE_URL`
+    *   Value: URL Backend dari Langkah 2 (tambahkan `/api` di belakangnya jika perlu, misal: `https://tatali-asih-api.onrender.com/api`).
 4.  Masuk ke **Settings** -> **Pages**.
-5.  Pada bagian **Build and deployment**, pilih **Source** -> **GitHub Actions**.
-6.  GitHub Actions akan otomatis berjalan (karena ada file `.github/workflows/deploy-frontend-vite.yml`).
-    *   Cek tab **Actions** di GitHub untuk melihat progress.
-    *   Jika gagal pertama kali, coba "Re-run jobs" setelah variabel `VITE_API_BASE_URL` diset.
+5.  Di bagian **Build and deployment**, pilih Source: **GitHub Actions**.
+6.  Selesai! GitHub akan otomatis men-deploy website Anda.
+    *   Cek tab **Actions** untuk melihat prosesnya.
+    *   Jika sudah hijau, website Anda sudah online!
 
-## 5. Verifikasi
+## Masalah Umum
 
-1.  Buka URL Frontend yang diberikan oleh GitHub Pages.
-2.  Coba fitur Login/Register.
-3.  Cek apakah data tersimpan di database.
-
----
-
-### Troubleshooting
-
-*   **Error 3D Model**: Pastikan file `model.glb` ada di folder `frontend/egoQitl/public/assets/`. Kode sudah disesuaikan untuk memuat dari path yang benar di produksi.
-*   **CORS Error**: Jika frontend tidak bisa akses backend, pastikan backend mengizinkan origin frontend. (Saat ini backend dikonfigurasi `cors()` default yang mengizinkan semua, namun untuk keamanan lebih baik dibatasi nanti).
-*   **Database Error**: Pastikan URL database benar dan database sudah di-migrate. `render.yaml` sudah menyertakan perintah migrate otomatis, tapi jika gagal, Anda mungkin perlu menjalankannya manual atau cek log Render.
+*   **3D Model Tidak Muncul**: Pastikan file `model.glb` benar-benar ada di folder `frontend/egoQitl/public/assets/`. Kode sudah saya update untuk otomatis menyesuaikan path.
+*   **Database Error**: Cek log di Render. Pastikan URL database benar.

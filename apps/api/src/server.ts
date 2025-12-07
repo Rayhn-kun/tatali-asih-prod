@@ -1,7 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 
 
-import openapi from './openapi.json' assert { type: 'json' };
+import openapi from './openapi.json';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
