@@ -68,7 +68,7 @@ docker compose up -d --build
    - Value: URL Backend dari Render (tanpa slash akhir, misal: `https://tatali-api.onrender.com/api`).
 3. Masuk ke **Settings** -> **Pages**.
 4. Build and deployment source: Pilih **GitHub Actions**.
-5. Push kode ke branch `main`. Action akan berjalan otomatis dan men-deploy frontend.
+5. Push kode ke branch `master`. Action akan berjalan otomatis dan men-deploy frontend.
 
 ---
 ✨ Dibangun otomatis berdasarkan percakapan pengembanganmu.

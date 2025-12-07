@@ -32,7 +32,7 @@ export const Hero3D: React.FC = () => {
     let animationId: number
 
     loader.load(
-      '/assets/model.glb', // Ensure this path is correct in your public folder
+      `${import.meta.env.BASE_URL}assets/model.glb`, // Respect base path
       (gltf) => {
         model = gltf.scene
         
