@@ -41,54 +41,83 @@ export const Hero3D: React.FC = () => {
     console.log(`[Hero3D] Primary model path: ${primaryPath}`);
 
     // Function to attempt loading the model
-    const loadModel = (path: string, isRetry = false) => {
+    const loadModel = async (path: string, isRetry = false) => {
       console.log(`[Hero3D] Attempting to load from: ${path}`);
       
-      loader.load(
-        path,
-        (gltf) => {
-          console.log(`[Hero3D] Model loaded successfully from ${path}`);
-          model = gltf.scene;
-          
-          // Center and scale model
-          const box = new THREE.Box3().setFromObject(model)
-          const center = box.getCenter(new THREE.Vector3())
-          const size = box.getSize(new THREE.Vector3())
-          
-          // Auto scale to fit view
-          const maxDim = Math.max(size.x, size.y, size.z)
-          const scale = 3 / maxDim
-          model.scale.set(scale, scale, scale)
-          
-          model.position.sub(center.multiplyScalar(scale))
-          
-          scene.add(model)
-          setIsLoading(false);
-        },
-        (xhr) => {
-          // Progress handler
-          // console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-        },
-        (error) => {
-          console.error(`[Hero3D] Error loading from ${path}:`, error);
-          
-          if (!isRetry && path !== fallbackPath) {
-            console.log(`[Hero3D] Retrying with fallback path: ${fallbackPath}`);
-            loadModel(fallbackPath, true);
-            return;
-          }
-
-          let errorMessage = 'Failed to load 3D model';
-          if (error instanceof Error) {
-            errorMessage = error.message;
-            if (errorMessage.includes('JSON content not found') || errorMessage.includes('Unexpected token')) {
-              errorMessage += ' (File not found or server returned HTML)';
-            }
-          }
-          setError(errorMessage);
-          setIsLoading(false);
+      try {
+        // Pre-fetch as blob to check validity and handle network errors explicitly
+        const response = await fetch(path);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
+        
+        const contentType = response.headers.get('content-type');
+        console.log(`[Hero3D] Content-Type: ${contentType}`);
+        
+        const blob = await response.blob();
+        console.log(`[Hero3D] Blob size: ${blob.size} bytes`);
+        
+        if (blob.size < 1000) {
+           // It's likely an error page or empty file
+           const text = await blob.text();
+           console.error('[Hero3D] File too small, content start:', text.substring(0, 100));
+           throw new Error('File too small, likely not a valid GLB model');
+        }
+
+        const objectURL = URL.createObjectURL(blob);
+        
+        loader.load(
+          objectURL,
+          (gltf) => {
+            console.log(`[Hero3D] Model loaded successfully from ${path}`);
+            model = gltf.scene;
+            
+            // Center and scale model
+            const box = new THREE.Box3().setFromObject(model)
+            const center = box.getCenter(new THREE.Vector3())
+            const size = box.getSize(new THREE.Vector3())
+            
+            // Auto scale to fit view
+            const maxDim = Math.max(size.x, size.y, size.z)
+            const scale = 3 / maxDim
+            model.scale.set(scale, scale, scale)
+            
+            model.position.sub(center.multiplyScalar(scale))
+            
+            scene.add(model)
+            setIsLoading(false);
+            
+            // Clean up object URL
+            URL.revokeObjectURL(objectURL);
+          },
+          (xhr) => {
+            // Progress handler
+            // console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+          },
+          (error) => {
+            console.error(`[Hero3D] Error parsing GLB from blob:`, error);
+            setError(`Failed to parse 3D model: ${error instanceof Error ? error.message : String(error)}`);
+            setIsLoading(false);
+            URL.revokeObjectURL(objectURL);
+          }
+        );
+
+      } catch (error) {
+        console.error(`[Hero3D] Error fetching ${path}:`, error);
+          
+        if (!isRetry && path !== fallbackPath) {
+          console.log(`[Hero3D] Retrying with fallback path: ${fallbackPath}`);
+          loadModel(fallbackPath, true);
+          return;
+        }
+
+        let errorMessage = 'Failed to load 3D model';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        setError(errorMessage);
+        setIsLoading(false);
+      }
     };
 
     // Start loading
@@ -150,3 +179,4 @@ export const Hero3D: React.FC = () => {
 }
 
 export default Hero3D
+
