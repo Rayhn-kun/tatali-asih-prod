@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/tatali-asih-prod/', // Assumes GitHub repository name is 'tatali-asih-prod'
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/tatali-asih-prod/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -21,4 +21,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

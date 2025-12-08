@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 export const Hero3D: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -31,49 +32,79 @@ export const Hero3D: React.FC = () => {
     let model: THREE.Group | null = null
     let animationId: number
 
-    const modelPath = `${import.meta.env.BASE_URL}assets/model.glb`
-    console.log('Loading 3D model from:', modelPath)
+    // Strategy: Try constructed path first, fallback to root path if needed
+    const basePath = import.meta.env.BASE_URL;
+    const primaryPath = `${basePath}assets/model.glb`;
+    const fallbackPath = '/assets/model.glb';
+    
+    console.log(`[Hero3D] Base URL: ${basePath}`);
+    console.log(`[Hero3D] Primary model path: ${primaryPath}`);
 
-    loader.load(
-      modelPath, 
-      (gltf) => {
-        console.log('Model loaded successfully')
-        model = gltf.scene
-        
-        // Center and scale model
-        const box = new THREE.Box3().setFromObject(model)
-        const center = box.getCenter(new THREE.Vector3())
-        const size = box.getSize(new THREE.Vector3())
-        
-        // Auto scale to fit view
-        const maxDim = Math.max(size.x, size.y, size.z)
-        const scale = 3 / maxDim
-        model.scale.set(scale, scale, scale)
-        
-        model.position.sub(center.multiplyScalar(scale))
-        
-        scene.add(model)
-        
-        // Animation loop
-        const animate = () => {
-          animationId = requestAnimationFrame(animate)
-          if (model) {
-            model.rotation.y += 0.005
+    // Function to attempt loading the model
+    const loadModel = (path: string, isRetry = false) => {
+      console.log(`[Hero3D] Attempting to load from: ${path}`);
+      
+      loader.load(
+        path,
+        (gltf) => {
+          console.log(`[Hero3D] Model loaded successfully from ${path}`);
+          model = gltf.scene;
+          
+          // Center and scale model
+          const box = new THREE.Box3().setFromObject(model)
+          const center = box.getCenter(new THREE.Vector3())
+          const size = box.getSize(new THREE.Vector3())
+          
+          // Auto scale to fit view
+          const maxDim = Math.max(size.x, size.y, size.z)
+          const scale = 3 / maxDim
+          model.scale.set(scale, scale, scale)
+          
+          model.position.sub(center.multiplyScalar(scale))
+          
+          scene.add(model)
+          setIsLoading(false);
+        },
+        (xhr) => {
+          // Progress handler
+          // console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        (error) => {
+          console.error(`[Hero3D] Error loading from ${path}:`, error);
+          
+          if (!isRetry && path !== fallbackPath) {
+            console.log(`[Hero3D] Retrying with fallback path: ${fallbackPath}`);
+            loadModel(fallbackPath, true);
+            return;
           }
-          renderer.render(scene, camera)
+
+          let errorMessage = 'Failed to load 3D model';
+          if (error instanceof Error) {
+            errorMessage = error.message;
+            if (errorMessage.includes('JSON content not found') || errorMessage.includes('Unexpected token')) {
+              errorMessage += ' (File not found or server returned HTML)';
+            }
+          }
+          setError(errorMessage);
+          setIsLoading(false);
         }
-        animate()
-      },
-      (progress) => {
-        console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%')
-      },
-      (err) => {
-        console.error('Error loading 3D model from:', modelPath, err)
-        setError(`Gagal memuat model 3D: ${err.message}`)
-      }
-    )
+      );
+    };
+
+    // Start loading
+    loadModel(primaryPath);
 
     camera.position.z = 5
+
+    // Animation Loop
+    const animate = () => {
+      animationId = requestAnimationFrame(animate)
+      if (model) {
+        model.rotation.y += 0.005
+      }
+      renderer.render(scene, camera)
+    }
+    animate()
 
     // Handle Resize
     const handleResize = () => {
@@ -84,20 +115,38 @@ export const Hero3D: React.FC = () => {
     }
     window.addEventListener('resize', handleResize)
 
+    // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize)
       cancelAnimationFrame(animationId)
-      renderer.dispose()
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
+      window.removeEventListener('resize', handleResize)
+      if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
+        containerRef.current.removeChild(renderer.domElement)
       }
+      renderer.dispose()
     }
   }, [])
 
-  if (error) return null // Fail silently or show error
+  if (error) {
+    return (
+      <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-gray-100 rounded-lg">
+        <div className="text-center p-4">
+          <p className="text-red-500 font-semibold mb-2">Error Loading 3D Model</p>
+          <p className="text-sm text-gray-600">{error}</p>
+          <p className="text-xs text-gray-400 mt-2">Check console for details</p>
+        </div>
+      </div>
+    )
+  }
 
-  return <div ref={containerRef} className="w-full h-full min-h-[300px]" />
+  return (
+    <div ref={containerRef} className="w-full h-full min-h-[400px] relative">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default Hero3D
-
